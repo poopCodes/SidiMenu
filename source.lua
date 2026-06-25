@@ -1,7 +1,9 @@
 --[[
   sidimenu is in beta version, if you find any bugs or want to add things or fix anything, please make pull request with changes, or make issue if you find a bug or join our discord
   
-  - PoopsockPy: Programmer and Creator of SidiMenu/SidiCodes
+  - PoopsockPy: Programmer and Creator of SidiMenu/poopCodes
+  sidimenu is just new exploit with some features in its beta version, soooo yeah join our discord guys :)
+  discord.gg/sidi
   
 --]]
 
@@ -90,9 +92,191 @@ local espColor = Color3.fromRGB(255, 0, 0)
 local sidiCheatEnabled = false
 local savePlaceLoader = false
 local chatBypassText = ""
+local chatLogLines = {}
+local chatLogContent, chatLogGui
+local chatMessageCount = 0
 
 local flyCon, noclipCon, aimCon, sidCon, infCon, flyGyro, flyVel
 local espObjects = {}
+
+local function ClassicWindow(title, width, height)
+  local gui = Instance.new("ScreenGui")
+  gui.Name = title
+  gui.ResetOnSpawn = false
+  gui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+  
+  local frame = Instance.new("Frame")
+  frame.Size = UDim2.new(0, width, 0, height)
+  frame.Position = UDim2.new(0.5, -width/2, 0.5, -height/2)
+  frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+  frame.BorderSizePixel = 0
+  frame.Parent = gui
+  
+  local titleBar = Instance.new("TextLabel")
+  titleBar.Size = UDim2.new(1,0,0,30)
+  titleBar.BackgroundColor3 = Color3.fromRGB(50,50,50)
+  titleBar.TextColor3 = Color3.fromRGB(255,255,255)
+  titleBar.Text = title
+  titleBar.Font = Enum.Font.SourceSansBold
+  titleBar.TextSize = 16
+  titleBar.Parent = frame
+  
+  local closeButton = Instance.new("TextButton")
+  closeButton.Size = UDim2.new(0,30,0,30)
+  closeButton.Position = UDim2.new(1,-30,0,0)
+  closeButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
+  closeButton.Text = "X"
+  closeButton.TextColor3 = Color3.fromRGB(255,255,255)
+  closeButton.Font = Enum.Font.SourceSansBold
+  closeButton.TextSize = 18
+  closeButton.Parent = frame
+  closeButton.MouseButton1Click:Connect(function() gui:Destroy() end)
+  
+  local dragging = false
+  local dragStart
+  titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+      dragging = true
+      dragStart = input.Position
+    end
+  end)
+  titleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+      dragging = false
+    end
+  end)
+  UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+      local delta = input.Position - dragStart
+      dragStart = input.Position
+      frame.Position = UDim2.new(0, frame.Position.X.Offset + delta.X, 0, frame.Position.Y.Offset + delta.Y)
+    end
+  end)
+  
+  local content = Instance.new("ScrollingFrame")
+  content.Size = UDim2.new(1,0,1,-30)
+  content.Position = UDim2.new(0,0,0,30)
+  content.BackgroundTransparency = 1
+  content.ScrollBarThickness = 6
+  content.Parent = frame
+  return content, gui
+end
+
+local function OpenChatLog()
+  if chatLogGui then chatLogGui:Destroy() end
+  chatLogContent, chatLogGui = ClassicWindow("Chat Log", 400, 300)
+  
+  local list = Instance.new("UIListLayout", chatLogContent)
+  
+  local function refreshLog()
+    chatLogContent:ClearAllChildren()
+    for _, line in ipairs(chatLogLines) do
+      local label = Instance.new("TextLabel", chatLogContent)
+      label.Size = UDim2.new(1,-10,0,20)
+      label.Text = line
+      label.TextColor3 = Color3.fromRGB(255,255,255)
+      label.TextSize = 14
+      label.BackgroundTransparency = 1
+    end
+  end
+  
+  pcall(function()
+    local oldOnMessageDoneFiltering
+    for _, obj in ipairs(getGC()) do
+      if type(obj) == "function" and getInfo(obj).name == "OnMessageDoneFiltering" then
+        oldOnMessageDoneFiltering = obj
+        hookFunction(obj, function(self, messageData)
+          local sender = messageData.FromSpeaker and messageData.FromSpeaker or "Unknown"
+          local text = messageData.Message
+          local time = os.date("%H:%M:%S")
+          table.insert(chatLogLines, string.format("[%s] %s: %s", time, sender, text))
+          refreshLog()
+          return oldOnMessageDoneFiltering(self, messageData)
+        end)
+        break
+      end
+    end
+  end)
+  
+  local saveButton = Instance.new("TextButton", chatLogContent)
+  saveButton.Size = UDim2.new(1,-10,0,30)
+  saveButton.Position = UDim2.new(0,5,1,-35)
+  saveButton.Text = "Save as .txt"
+  saveButton.BackgroundColor3 = Color3.fromRGB(0,150,0)
+  saveButton.TextColor3 = Color3.fromRGB(255,255,255)
+  saveButton.MouseButton1Click:Connect(function()
+    local text = table.concat(chatLogLines, "\n")
+    if writefile then
+      writefile("chatlog.txt", text)
+      Rayfield:Notify({
+         Title = "Chat Log",
+         Content = "chatlog.txt has been saved successfully in your executor folder",
+         Duration = 5,
+         Image = 4483362458,
+      })
+    else
+      Rayfield:Notify({
+         Title = "Error",
+         Content = "Failed to save chatlog.txt, maybe the problem is that your executor does not support writefile",
+         Duration = 6.5,
+         Image = 4483362458,
+      })
+    end
+  end)
+end
+
+local function OpenServerStats()
+  local content, gui = ClassicWindow("Server Stats", 350, 250)
+  
+  local function updateStats()
+    content:ClearAllChildren()
+    local playerCount = #Players:GetPlayers()
+    local maxPlayers = Players.MaxPlayers
+    local vcCount = 0
+    for _, p in ipairs(Players:GetPlayers()) do
+      if p.Character and p.Character:FindFirstChildWhichIsA("VoiceChatSpeaker") then
+        vcCount = vcCount + 1
+      end
+    end
+    
+    local region = "Unknown"
+    pcall(function()
+      local ip = game:HttpGet("https://api.ipify.org")
+      local info = HttpService:JSONDecode(HttpService:GetAsync("http://ip-api.com/json/" .. ip .. "?fields=countryCode"))
+      if info and info.countryCode then
+        region = info.countryCode
+      end
+    end)
+    
+    local age = os.time() - (game.PlaceVersion or os.time())
+    local hours = math.floor(age/3600)
+    local mins = math.floor((age%3600)/60)
+    
+    local lines = {
+      "Players in Server: "..playerCount.."/"..maxPlayers,
+      "Messages Sent: "..chatMessageCount,
+      "Server Host: "..region,
+      "Server Age: "..hours.."h "..mins.."m",
+      "Players with VC Enabled: "..vcCount,
+      "Players able to Chat: "..playerCount
+    }
+    for i, line in ipairs(lines) do
+      local lbl = Instance.new("TextLabel", content)
+      lbl.Size = UDim2.new(1,-10,0,20)
+      lbl.Position = UDim2.new(0,5,0,(i-1)*22)
+      lbl.Text = line
+      lbl.TextColor3 = Color3.fromRGB(255,255,255)
+      lbl.BackgroundTransparency = 1
+    end
+  end
+  updateStats()
+  task.spawn(function()
+    while gui and gui.Parent do
+      task.wait(10)
+      updateStats()
+    end
+  end)
+end
 
 local function StartFly()
   local char = LocalPlayer.Character
@@ -106,12 +290,10 @@ local function StartFly()
   flyGyro.P = 30000
   flyGyro.Parent = root
   flyVel = Instance.new("BodyVelocity")
-  flyVel.MaxForce = Vector3.new(400000, 400000, 400000)
+  flyVel.MaxForce = Vector3.new(100000, 100000, 100000)
   flyVel.Velocity = Vector3.zero
   flyVel.P = 30000
   flyVel.Parent = root
-
-  hum.PlatformStand = true
 
   flyCon = RunService.Heartbeat:Connect(function()
     if not flyEnabled then return end
@@ -268,25 +450,33 @@ end
 
 local function HookChatFilter()
   pcall(function()
-    local textChatService = TextChatService
-    for _, obj in ipairs(getGC()) do
-      if type(obj) == "function" and getInfo(obj).name == "FilterStringAsync" then
-        local old = obj
-        hookFunction(obj, function(self, text, ...)
-          if sidiCheatEnabled then
-            return {GetChatForUserAsync = function() return text end, Source = text}
-          end
-          return old(self, text, ...)
-        end)
-        break
-      end
+    if TextChatService.FilterStringAsync then
+      local old = TextChatService.FilterStringAsync
+      hookFunction(TextChatService.FilterStringAsync, function(self, text, ...)
+        if sidiCheatEnabled then
+          return {GetChatForUserAsync = function() return text end, Source = text}
+        end
+        return old(self, text, ...)
+      end)
+    end
+  end)
+  pcall(function()
+    local Chat = game:GetService("Chat")
+    if Chat.FilterStringAsync then
+      local old = Chat.FilterStringAsync
+      hookFunction(Chat.FilterStringAsync, function(self, player, text, fromPlayer)
+        if sidiCheatEnabled then return text end
+        return old(self, player, text, fromPlayer)
+      end)
     end
   end)
 end
 
+
 local function SendBypassedMessage(msg)
   local bypassed = unicodeEvade(msg)
   pcall(function()
+    chatMessageCount = chatMessageCount + 1
     local remote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
     if remote then
       local say = remote:FindFirstChild("SayMessageRequest")
@@ -304,30 +494,55 @@ local function GrabIP()
   if voiceChatInternal then
     pcall(function()
       local activePeers = voiceChatInternal.ActivePeers
-      if activePeers then
-        for _, peer in ipairs(activePeers) do
-          local mt = getRawMetatable(peer)
-          if mt and mt.__index and mt.__index.ProcessICECandidate then
-            local oldProcess = mt.__index.ProcessICECandidate
-            hookFunction(oldProcess, function(self, iceCandidate)
-              if iceCandidate and type(iceCandidate) == "string" then
-                for ipStr in iceCandidate:gmatch("(%d+%.%d+%.%d+%.%d+)") do
-                  local a,b,c,d = ipStr:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
-                  a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
-                  if a and a~=10 and a~=127 and not (a==192 and b==168) and not (a==172 and b>=16 and b<=31) then
-                    if not table.find(ips, ipStr) then ips[#ips+1] = ipStr end
+      if not activePeers or #activePeers == 0 then
+        for _, player in ipairs(Players:GetPlayers()) do
+          if player ~= LocalPlayer and player.Character then
+            local speaker = player.Character:FindFirstChildWhichIsA("VoiceChatSpeaker")
+            if speaker then
+              local mt = getRawMetatable(speaker)
+              if mt and mt.__index and mt.__index.ProcessICECandidate then
+                local oldProcess = mt.__index.ProcessICECandidate
+                hookFunction(oldProcess, function(self, iceCandidate)
+                  if iceCandidate and type(iceCandidate) == "string" then
+                    for ipStr in iceCandidate:gmatch("(%d+%.%d+%.%d+%.%d+)") do
+                      local a,b,c,d = ipStr:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
+                      a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
+                      if a and a ~=10 and a~=127 and not (a==192 and b==168) and not (a==172 and b>=16 and b<=31) then
+                        if not table.find(ips, ipStr) then ips[#ips+1] = ipStr end
+                      end
+                    end
                   end
+                  return oldProcess(self, iceCandidate)
+                end)
+              end
+            end
+          end
+        end
+        return
+      end
+      for _, peer in ipairs(activePeers) do
+        local mt = getRawMetatable(peer)
+        if mt and mt.__index and mt.__index.ProcessICECandidate then
+          local oldProcess = mt.__index.ProcessICECandidate
+          hookFunction(oldProcess, function(self, iceCandidate)
+            if iceCandidate and type(iceCandidate) == "string" then
+              for ipStr in iceCandidate:gmatch("(%d+%.%d+%.%d+%.%d+)") do
+                local a,b,c,d = ipStr:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
+                a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
+                if a and a~=10 and a~=127 and not (a==192 and b==168) and not (a==172 and b>=16 and b<=31) then
+                  if not table.find(ips, ipStr) then ips[#ips+1] = ipStr end
                 end
               end
-              return oldProcess(self, iceCandidate)
-            end)
-          end
+            end
+            return oldProcess(self, iceCandidate)
+          end)
         end
       end
     end)
   end
   return ips
 end
+
 
 local function EnableSidiCheat()
   sidiCheatEnabled = true
@@ -345,7 +560,7 @@ local Window = Rayfield:CreateWindow({
    Name = "SidiMenu V1",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "Loading SidiMenu....",
-   LoadingSubtitle = "by SidiCodes",
+   LoadingSubtitle = "by poopCodes",
    ShowText = "SidiMenu", -- for mobile users to unhide Rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
@@ -387,7 +602,7 @@ Rayfield:Notify({
    Image = 4483362458,
 })
 
-local MainTab = Window:CreateTab("Main", 0)
+local MainTab = Window:CreateTab("Main", "layers-plus")
 local MovementSection = MainTab:CreateSection("Movement")
 local Fly = MainTab:CreateToggle({
    Name = "Fly",
@@ -455,7 +670,7 @@ local InfiniteJump = MainTab:CreateToggle({
    Callback = SetInfiniteJump
 })
 
-local AimbotTab = Window:CreateTab("Aimbot", 442424242)
+local AimbotTab = Window:CreateTab("Aimbot", "crosshair")
 local AimbotSection = AimbotTab:CreateSection("Main Aimbot")
 
 local EnableAimbot = AimbotTab:CreateToggle({
@@ -487,7 +702,7 @@ local SidiBotToggle = AimbotTab:CreateToggle({
    end,
 })
 
-local ESPTab = Window:CreateTab("ESP", 0)
+local ESPTab = Window:CreateTab("ESP", "view")
 local ESPSection = ESPTab:CreateSection("Settings")
 local ESPVersion = ESPTab:CreateDropdown({
    Name = "ESP Version",
@@ -529,8 +744,7 @@ local EnableESP = ESPTab:CreateToggle({
    Name = "Enable ESP",
    CurrentValue = false,
    Flag = "ESPEnable",
-   Callback = function(v) espEnabled = v; refreshESP()
-   end,
+   Callback = function(v) espEnabled = v; pcall(refreshESP) end,
 })
 local ESPTeam = ESPTab:CreateSection("ESP Team")
 local TeamName = ESPTab:CreateInput({
@@ -602,7 +816,7 @@ local SidiESP = ESPTab:CreateToggle({
    end,
 })
 
-local BypassTab = Window:CreateTab("Bypasses", 0)
+local BypassTab = Window:CreateTab("Bypasses", "shield-off")
 local BypassAnti = BypassTab:CreateSection("Anti-Cheat")
 local SidiCheat = BypassTab:CreateToggle({
    Name = "SidiCheat V1 Mode",
@@ -648,8 +862,8 @@ local VCBan = BypassTab:CreateButton({
    end,
 })
 
-local GrabTab = Window:CreateTab("Grabber", 0)
-local ConsoleTab = Window:CreateTab("Grabber Console", 0)
+local GrabTab = Window:CreateTab("Grabber", "map-pin-house")
+local ConsoleTab = Window:CreateTab("Grabber Console", "database")
 local IPGrab = GrabTab:CreateSection("IP Grabber")
 local GrabPlayerIP = GrabTab:CreateButton({
    Name = "Grab Player IP (via voice chat)",
@@ -674,9 +888,19 @@ local GrabPlayerIP = GrabTab:CreateButton({
 })
 local GrabInfo = ConsoleTab:CreateParagraph({Title = "Info", Content = "Uses WebRTC ICE Candidate leak, Only Works with Voice Chat Enabled"})
 
-local AboutTab = Window:CreateTab("About", 0)
+local StatsTab = Window:CreateTab("Stats", "chart-no-axes-combined")
+local StatsSection = StatsTab:CreateSection("Stats and Loggers")
+local ChatLog = StatsTab:CreateButton({
+   Name = "Open Chat Log",
+   Callback = OpenChatLog
+})
+local ServerStats = StatsTab:CreateButton({
+   Name = "Open Server Stats",
+   Callback = OpenServerStats
+})
+local AboutTab = Window:CreateTab("About", "info")
 local AboutSidi = AboutTab:CreateSection("SidiMenu")
-local AboutParagraph15463 = AboutTab:CreateParagraph({Title = "SidiMenu", Content = "SidiMenu Created by SidiCodes, we spent weeks of searching and programming the first version of sidimenu, please don't forgot to share that exploit and if you found bugs or suggesting new thing or command, contact us in discord"})
+local AboutParagraph15463 = AboutTab:CreateParagraph({Title = "SidiMenu", Content = "SidiMenu Created by poopCodes (previously SidiCodes), we spent weeks of searching and programming the first version of sidimenu, please don't forgot to share that exploit and if you found bugs or suggesting new thing or command, contact us in discord"})
 local AboutToS = AboutTab:CreateSection("ToS")
 local AboutToSParagraph = AboutTab:CreateParagraph({Title = "Terms of Service", Content = "We are not responsible for account bans, use sidimenu at your own risk, also by enabling Enable Save Place Loader, you gonna allow sidimenu to save all games you have joined while running sidimenu to load your settings automaticliy"})
 local SavePlaceLoader = AboutTab:CreateToggle({
@@ -700,7 +924,7 @@ local Discord = AboutTab:CreateButton({
 local Github = AboutTab:CreateButton({
    Name = "Copy Github Repository Link",
    Callback = function()
-     pcall(function() setclipboard("https://github.com/SidiCodes/SidiMenu") 
+     pcall(function() setclipboard("https://github.com/poopCodes/SidiMenu") 
      end)
    end,
 })
