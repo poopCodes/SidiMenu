@@ -514,7 +514,7 @@ local espPlayerDropdown = ESPTab:CreateDropdown({
    -- The function that takes place when the selected option is changed
    -- The variable (Options) is a table of strings for the current selected options
 })
-Players.PlayerAdded:Conect(function() if espPlayerDropdown then espPlayerDropdown:Refresh(espPlayerOpts()) end end)
+Players.PlayerAdded:Connect(function() if espPlayerDropdown then espPlayerDropdown:Refresh(espPlayerOpts()) end end)
 Players.PlayerRemoving:Connect(function() task.wait(0.1); if espPlayerDropdown then espPlayerDropdown:Refresh(espPlayerOpts()) end end)
 local ESPColor = ESPTab:CreateColorPicker({
     Name = "ESP Color",
