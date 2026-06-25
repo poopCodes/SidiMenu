@@ -338,7 +338,7 @@ local function EnableSidiCheat()
   for _, f in ipairs(getGC()) do
     if type(f) == "function" and getInfo(f).name == "kick" then noopFunction(f) end
   end
-  hookChatFilter()
+  HookChatFilter()
 end
 
 local Window = Rayfield:CreateWindow({
@@ -456,9 +456,9 @@ local InfiniteJump = MainTab:CreateToggle({
 })
 
 local AimbotTab = Window:CreateTab("Aimbot", 442424242)
-local AimbotSection = MainTab:CreateSection("Main Aimbot")
+local AimbotSection = AimbotTab:CreateSection("Main Aimbot")
 
-local EnableAimbot = MainTab:CreateToggle({
+local EnableAimbot = AimbotTab:CreateToggle({
    Name = "Enable Aimbot",
    CurrentValue = false,
    Flag = "Aimbot",
@@ -467,7 +467,7 @@ local EnableAimbot = MainTab:CreateToggle({
      if v then StartAimbot() else if aimCon then aimCon:Disconnect(); aimCon = nil end end
    end,
 })
-local AimbotHead = MainTab:CreateToggle({
+local AimbotHead = AimbotTab:CreateToggle({
    Name = "Aimbot in Head",
    CurrentValue = false,
    Flag = "AimbotHead",
@@ -476,7 +476,7 @@ local AimbotHead = MainTab:CreateToggle({
      if v then StartAimbot() else if aimCon then aimCon:Disconnect(); aimCon = nil end end
    end,
 })
-local AimbotSidi = MainTab:CreateSection("SidiBot")
+local AimbotSidi = AimbotTab:CreateSection("SidiBot")
 local SidiBotToggle = MainTab:CreateToggle({
    Name = "SidiBot V1 Mode",
    CurrentValue = false,
@@ -629,13 +629,13 @@ local SendMessage = BypassTab:CreateButton({
    Name = "Send",
    Callback = function()
      if chatBypassText ~= "" then
-       sendBypassedMessage(chatBypassText)
+       SendBypassedMessage(chatBypassText)
      end
    end,
 })
 local DisableFilter = BypassTab:CreateButton({
    Name = "Disable Local Chat Filter",
-   Callback = hookChatFilter,
+   Callback = HookChatFilter,
 })
 local VC = BypassTab:CreateSection("Voice Chat")
 local VCBan = BypassTab:CreateButton({
@@ -676,7 +676,7 @@ local GrabInfo = ConsoleTab:CreateParagraph({Title = "Info", Content = "Uses Web
 
 local AboutTab = Window:CreateTab("About", 0)
 local AboutSidi = AboutTab:CreateSection("SidiMenu")
-local AboutParagraph1 = AboutTab:CreateParagraph({Title = "SidiMenu", Content = "SidiMenu Created by SidiCodes, we spent weeks of searching and programming the first version of sidimenu, please don't forgot to share that exploit and if you found bugs or suggesting new thing or command, contact us in discord"})
+local AboutParagraph15463 = AboutTab:CreateParagraph({Title = "SidiMenu", Content = "SidiMenu Created by SidiCodes, we spent weeks of searching and programming the first version of sidimenu, please don't forgot to share that exploit and if you found bugs or suggesting new thing or command, contact us in discord"})
 local AboutToS = AboutTab:CreateSection("ToS")
 local AboutToSParagraph = AboutTab:CreateParagraph({Title = "Terms of Service", Content = "We are not responsible for account bans, use sidimenu at your own risk, also by enabling Enable Save Place Loader, you gonna allow sidimenu to save all games you have joined while running sidimenu to load your settings automaticliy"})
 local SavePlaceLoader = AboutTab:CreateToggle({
@@ -722,7 +722,7 @@ Players.PlayerRemoving:Connect(espRemove)
 LocalPlayer.CharacterAdded:Connect(function()
   task.wait(0.5)
   if invisEnabled then
-    setInvisible(true)
+    SetInvisible(true)
   end
   if flyEnabled then
     StopFly(); flyEnabled = true; StartFly() end
