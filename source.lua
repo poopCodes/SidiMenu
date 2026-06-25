@@ -602,7 +602,7 @@ Rayfield:Notify({
    Image = 4483362458,
 })
 
-local MainTab = Window:CreateTab("Main", "layers-plus")
+local MainTab = Window:CreateTab("Main", 0)
 local MovementSection = MainTab:CreateSection("Movement")
 local Fly = MainTab:CreateToggle({
    Name = "Fly",
@@ -670,7 +670,7 @@ local InfiniteJump = MainTab:CreateToggle({
    Callback = SetInfiniteJump
 })
 
-local AimbotTab = Window:CreateTab("Aimbot", "crosshair")
+local AimbotTab = Window:CreateTab("Aimbot", 0)
 local AimbotSection = AimbotTab:CreateSection("Main Aimbot")
 
 local EnableAimbot = AimbotTab:CreateToggle({
@@ -702,7 +702,7 @@ local SidiBotToggle = AimbotTab:CreateToggle({
    end,
 })
 
-local ESPTab = Window:CreateTab("ESP", "view")
+local ESPTab = Window:CreateTab("ESP", 0)
 local ESPSection = ESPTab:CreateSection("Settings")
 local ESPVersion = ESPTab:CreateDropdown({
    Name = "ESP Version",
@@ -816,7 +816,7 @@ local SidiESP = ESPTab:CreateToggle({
    end,
 })
 
-local BypassTab = Window:CreateTab("Bypasses", "shield-off")
+local BypassTab = Window:CreateTab("Bypasses", 0)
 local BypassAnti = BypassTab:CreateSection("Anti-Cheat")
 local SidiCheat = BypassTab:CreateToggle({
    Name = "SidiCheat V1 Mode",
@@ -862,8 +862,8 @@ local VCBan = BypassTab:CreateButton({
    end,
 })
 
-local GrabTab = Window:CreateTab("Grabber", "map-pin-house")
-local ConsoleTab = Window:CreateTab("Grabber Console", "database")
+local GrabTab = Window:CreateTab("Grabber", 0)
+local ConsoleTab = Window:CreateTab("Grabber Console", 0)
 local IPGrab = GrabTab:CreateSection("IP Grabber")
 local GrabPlayerIP = GrabTab:CreateButton({
    Name = "Grab Player IP (via voice chat)",
@@ -888,7 +888,7 @@ local GrabPlayerIP = GrabTab:CreateButton({
 })
 local GrabInfo = ConsoleTab:CreateParagraph({Title = "Info", Content = "Uses WebRTC ICE Candidate leak, Only Works with Voice Chat Enabled"})
 
-local StatsTab = Window:CreateTab("Stats", "chart-no-axes-combined")
+local StatsTab = Window:CreateTab("Stats", 0)
 local StatsSection = StatsTab:CreateSection("Stats and Loggers")
 local ChatLog = StatsTab:CreateButton({
    Name = "Open Chat Log",
@@ -898,7 +898,7 @@ local ServerStats = StatsTab:CreateButton({
    Name = "Open Server Stats",
    Callback = OpenServerStats
 })
-local AboutTab = Window:CreateTab("About", "info")
+local AboutTab = Window:CreateTab("About", 0)
 local AboutSidi = AboutTab:CreateSection("SidiMenu")
 local AboutParagraph15463 = AboutTab:CreateParagraph({Title = "SidiMenu", Content = "SidiMenu Created by poopCodes (previously SidiCodes), we spent weeks of searching and programming the first version of sidimenu, please don't forgot to share that exploit and if you found bugs or suggesting new thing or command, contact us in discord"})
 local AboutToS = AboutTab:CreateSection("ToS")
