@@ -53,8 +53,8 @@ local function noopFunction(func)
 end
 
 local unicodeMap = {
-  a='a' ,b='b', c='c' ,d='d' ,e='e' ,f='f' ,g='g',
-  A='A' ,b='B', c='C' ,d='D' ,e='E' ,f='F' ,g='G'
+  a='а', b='Ь', c='с', e='е', o='о', p='р', x='х', y='у',
+  A='А', C='С', E='Е', O='О', P='Р', X='Х', Y='У', T='Т', H='Н', B='В', M='М', K='К'
 }
 local function unicodeEvade(str)
   return str:gsub('.', function(c) return unicodeMap[c] or c end)
@@ -100,7 +100,7 @@ local function StartFly()
   local root = char:FindFirstChild("HumanoidRootPart")
   local hum = char:FindFirstChild("Humanoid")
   if not root or not hum then return end
-  
+
   flyGyro = Instance.new("BodyGyro")
   flyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
   flyGyro.P = 30000
@@ -110,9 +110,9 @@ local function StartFly()
   flyVel.Velocity = Vector3.zero
   flyVel.P = 30000
   flyVel.Parent = root
-  
+
   hum.PlatformStand = true
-  
+
   flyCon = RunService.Heartbeat:Connect(function()
     if not flyEnabled then return end
     local dir = Vector3.zero
@@ -261,7 +261,7 @@ local function refreshESP()
   for _, p in ipairs(Players:GetPlayers()) do
     if p ~= LocalPlayer then
       espRemove(p)
-      if espEnabled then createESP(p, espVersion, espColor) end
+      if espEnabled then CreateESP(p, espVersion, espColor) end
     end
   end
 end
@@ -349,7 +349,7 @@ local Window = Rayfield:CreateWindow({
    ShowText = "SidiMenu", -- for mobile users to unhide Rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
-   ToggleUIKeybind = "", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from emitting warnings when the script has a version mismatch with the interface.
@@ -409,7 +409,7 @@ local Noclip = MainTab:CreateToggle({
    Name = "Noclip",
    CurrentValue = false,
    Flag = "Noclip",
-   Callback = setNoclip
+   Callback = SetNoclip
 })
 
 local function playerNames()
@@ -446,13 +446,13 @@ local Invisible = MainTab:CreateToggle({
    Name = "Invisible",
    CurrentValue = false,
    Flag = "Invisible",
-   Callback = setInvisible
+   Callback = SetInvisible
 })
 local InfiniteJump = MainTab:CreateToggle({
    Name = "Infinite Jump",
    CurrentValue = false,
    Flag = "InfJUMP",
-   Callback = setInfiniteJump
+   Callback = SetInfiniteJump
 })
 
 local AimbotTab = Window:CreateTab("Aimbot", 442424242)
@@ -463,7 +463,7 @@ local EnableAimbot = AimbotTab:CreateToggle({
    CurrentValue = false,
    Flag = "Aimbot",
    Callback = function(v)
-     sidibotEnabled = v
+     aimbotEnabled = v
      if v then StartAimbot() else if aimCon then aimCon:Disconnect(); aimCon = nil end end
    end,
 })
@@ -477,7 +477,7 @@ local AimbotHead = AimbotTab:CreateToggle({
    end,
 })
 local AimbotSidi = AimbotTab:CreateSection("SidiBot")
-local SidiBotToggle = MainTab:CreateToggle({
+local SidiBotToggle = AimbotTab:CreateToggle({
    Name = "SidiBot V1 Mode",
    CurrentValue = false,
    Flag = "SidiBot",
@@ -716,7 +716,7 @@ Rayfield:Notify({
 
 Players.PlayerAdded:Connect(function(p)
   task.wait(1)
-  if espEnabled and p ~= LocalPlayer then createESP(p, espVersion, espColor) end
+  if espEnabled and p ~= LocalPlayer then CreateESP(p, espVersion, espColor) end
 end)
 Players.PlayerRemoving:Connect(espRemove)
 LocalPlayer.CharacterAdded:Connect(function()
